@@ -56,21 +56,6 @@ class NauticBase
      */
     private $postalCode;
 
-    public function __construct(
-        string $name,
-        string $description,
-        string $address,
-        string $city,
-        int $postalCode
-    ) {
-        $this->name = $name;
-        $this->description = $description;
-        $this->address = $address;
-        $this->city = $city;
-        $this->postalCode = $postalCode;
-    }
-
-
     /**
      * Get id
      *
