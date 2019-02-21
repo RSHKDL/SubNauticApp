@@ -9,21 +9,22 @@ use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class NauticBaseController extends Controller
 {
 
     /**
-     * @Route("/api/nauticbases", methods={"GET"}, name="api_nauticbase_list")
+     * @Route("/nauticbases", methods={"GET"}, name="api_nauticbase_list")
      */
-    public function listAction()
+    public function listAction(SerializerInterface $serializer)
     {
         $nauticBases = $this->getDoctrine()
             ->getRepository(NauticBase::class)
             ->findAll();
         $data = ['nauticBases' => []];
         foreach ($nauticBases as $nauticBase) {
-            $data['nauticBases'][] = $this->serializeNauticBase($nauticBase);
+            $data['nauticBases'][] = $serializer->serialize($nauticBase, 'json');
         }
 
         $response = new JsonResponse(json_encode($data), 200);
@@ -31,9 +32,9 @@ class NauticBaseController extends Controller
     }
 
     /**
-     * @Route("/api/nauticbases/{id}", methods={"GET"}, name="api_nauticbase_show")
+     * @Route("/nauticbases/{id}", methods={"GET"}, name="api_nauticbase_show")
      */
-    public function showAction(int $id)
+    public function showAction(int $id, SerializerInterface $serializer)
     {
         /** @var NauticBase $nauticBase */
         $nauticBase = $this->getDoctrine()
@@ -47,16 +48,16 @@ class NauticBaseController extends Controller
             ));
         }
 
-        $data = $this->serializeNauticBase($nauticBase);
+        $data = $serializer->serialize($nauticBase, 'json');
 
         $response = new JsonResponse(json_encode($data), 200);
         return $response;
     }
 
     /**
-     * @Route("/api/nauticbases", methods={"POST"}, name="api_nauticbase_create")
+     * @Route("/nauticbases", methods={"POST"}, name="api_nauticbase_create")
      */
-    public function createAction(Request $request)
+    public function createAction(Request $request, SerializerInterface $serializer)
     {
         $nauticBase = new NauticBase();
         $form = $this->createForm(NauticBaseType::class, $nauticBase);
@@ -68,7 +69,7 @@ class NauticBaseController extends Controller
             $em->flush();
         }
 
-        $data = $this->serializeNauticBase($nauticBase);
+        $data = $serializer->serialize($nauticBase, 'json');
         $response = new JsonResponse(json_encode($data), 201);
         $redirectUrl = $this->generateUrl(
             'api_nauticbase_show',
@@ -79,9 +80,9 @@ class NauticBaseController extends Controller
     }
 
     /**
-     * @Route("/api/nauticbases/{id}", methods={"PUT", "PATCH"}, name="api_nauticbase_update")
+     * @Route("/nauticbases/{id}", methods={"PUT", "PATCH"}, name="api_nauticbase_update")
      */
-    public function updateAction(int $id, Request $request)
+    public function updateAction(int $id, Request $request, SerializerInterface $serializer)
     {
         /** @var NauticBase $nauticBase */
         $nauticBase = $this->getDoctrine()
@@ -104,7 +105,7 @@ class NauticBaseController extends Controller
             $em->flush();
         }
 
-        $data = $this->serializeNauticBase($nauticBase);
+        $data = $serializer->serialize($nauticBase, 'json');
         $response = new JsonResponse(json_encode($data), 200);
         $redirectUrl = $this->generateUrl(
             'api_nauticbase_show',
@@ -115,11 +116,11 @@ class NauticBaseController extends Controller
     }
 
     /**
-     * @Route("/api/nauticbases/{id}", methods={"DELETE"}, name="api_nauticbase_delete")
+     * @Route("/nauticbases/{id}", methods={"DELETE"}, name="api_nauticbase_delete")
      *
      * Return a 204 even if the resource is not found.
      */
-    public function deleteAction(int $id, Request $request)
+    public function deleteAction(int $id)
     {
         /** @var NauticBase $nauticBase */
         $nauticBase = $this->getDoctrine()
@@ -133,22 +134,6 @@ class NauticBaseController extends Controller
         }
 
         return new JsonResponse(null, 204);
-    }
-
-    /**
-     * @param NauticBase $nauticBase
-     * @return array
-     */
-    public function serializeNauticBase(NauticBase $nauticBase)
-    {
-        return [
-            'id'            => $nauticBase->getId(),
-            'name'          => $nauticBase->getName(),
-            'description'   => $nauticBase->getDescription(),
-            'address'       => $nauticBase->getAddress(),
-            'city'          => $nauticBase->getCity(),
-            'postalCode'    => $nauticBase->getPostalCode()
-        ];
     }
 
     /**
